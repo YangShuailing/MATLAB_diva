@@ -3,7 +3,7 @@ clear all;
 
 X_scape=20;%标记点的个数
 Sensor_Num = 100;%传感器个数
-load 'ES_Loc_Result.mat';
+load 'DSL_Loc_Data_Ep0.mat';
 totalNum=size(Err,2);
 Err=Err(~isnan(Err));%去除没有定位结果的情况
 ymax=max(Err);
@@ -18,8 +18,8 @@ plot(x, yy, 'k>-', 'LineWidth', 1, 'MarkerFaceColor', 'k');
 xlabel('Positioning accuracy')
 ylabel('CDF')
 figure (2)
-for x_i = 1:Sensor_Num 
-    y_i = x_i*(x_i-1)+(x_i-1)+(x_i-1);%     每个节点会发n个数据包，收到n-1个数据包，Leader节点会收到n-1个数据包
+for x_i = 1:Sensor_Heared_Num
+   y_i =Sensor_Heared_Num*4;%     每个节点会发n个数据包，收到n-1个数据包，Leader节点会收到n-1个数据包
 plot(x_i,y_i,'k.') 
 
 hold on
