@@ -1,4 +1,4 @@
-function [Communication_Count,  DSL_Estimated_Location ,Sensor_Heared_Num] = DSL_Localization(Sensor_Num, Sensor_Loc,Target_Loc , Radius_Of_Acoustic,Err_S ,Err_M, Grid_Num )
+function [Communication_Count,  DSL_Estimated_Location ,Sensor_Heared_Num] = DSL_Localization(Sensor_Num, Sensor_Loc_Real,Sensor_Loc,Target_Loc , Radius_Of_Acoustic,Err_S ,Err_M,Grid_Num )
 %DSL_LOCALIZATION 此处显示有关此函数的摘要 
 %   此处显示详细说明
  
@@ -6,7 +6,7 @@ function [Communication_Count,  DSL_Estimated_Location ,Sensor_Heared_Num] = DSL
     Sensor_Heared = [];
     Communication_Count =0;%通信负载
     for i=1:Sensor_Num
-        dis = norm(Target_Loc-Sensor_Loc(i,:));
+        dis = norm(Target_Loc-Sensor_Loc_Real(i,:));
         if dis <= Radius_Of_Acoustic
             Sensor_Heared = [Sensor_Heared; i];
             
@@ -34,18 +34,18 @@ end
  %计算这些听到声音的节点的时间戳，假定外围不能听到声音的节点的TOA为无穷大
 %     TOA_Real = inf*ones(Sensor_Heared_Num,1);
     TOA = inf*ones(Sensor_Heared_Num,1);
-    Leader = Sensor_Loc(Sensor_Heared(1,1),:);
+    Leader = Sensor_Loc_Real(Sensor_Heared(1,1),:);
     for i=1:Sensor_Heared_Num
         Dis = norm( Leader-Target_Loc); %计算leader节点到声源的距离
         TOA_Real = Dis./340; %计算无误差情况下的TOA
         TOA = TOA_Real + (rand(size(TOA_Real))-0.5)*2*Err_M + (rand(size(TOA_Real))-0.5)*2 * Err_S;%加上时间同步误差和测量误差
-        Dis_i = norm(Sensor_Loc(Sensor_Heared(i,1),:)-Target_Loc); %计算第i个节点到声源的距离
+        Dis_i = norm(Sensor_Loc_Real(Sensor_Heared(i,1),:)-Target_Loc); %计算第i个节点到声源的距离
 %       TOA_Real(Sensor_Heared(i,1),:) = Dis./340; %计算无误差情况下的TOA
         TOA_Real_i = Dis_i./340; %计算无误差情况下的TOA
         TOA_i = TOA_Real_i + (rand(size(TOA_Real_i))-0.5)*2*Err_M + (rand(size(TOA_Real_i))-0.5)*2 * Err_S;%加上时间同步误差和测量误差
         Communication_Count =  Communication_Count + 1; %每个节点广播一次
         if TOA_i <= TOA
-                Leader = Sensor_Loc(Sensor_Heared(i,1),:);% Leader 
+                Leader = Sensor_Loc_Real(Sensor_Heared(i,1),:);% Leader 
          end
  
     end
@@ -59,7 +59,7 @@ end
 % 决定栅格大小
   Dis = [];
     for i=1:Sensor_Heared_Num
-        Dis_Tmp = norm( Leader-Sensor_Loc(Sensor_Heared(i,1),:)); %计算leader节点到声源的距离
+        Dis_Tmp = norm( Leader-Sensor_Loc_Real(Sensor_Heared(i,1),:)); %计算leader节点到声源的距离
          
         if Dis_Tmp ~=0  
                Dis = [Dis Dis_Tmp] ;% 选择距离Leader最近的点
@@ -77,19 +77,19 @@ flag=zeros((Grid_Num+1)*(Grid_Num+1),1);%标记
 for i=1:Sensor_Heared_Num  
      for j=i+1:Sensor_Heared_Num 
            	%声源到两个Sensor之间距离的差记为DeltaDis,包含位置误差
-            Dis_SpeakerToI=sqrt(((Target_Loc(1,1)-Sensor_Loc(Sensor_Heared(i),1)).^2)+((Target_Loc(1,2)-Sensor_Loc(Sensor_Heared(i),2)).^2));
-            Dis_SpeakerToJ=sqrt(((Target_Loc(1,1)-Sensor_Loc(Sensor_Heared(j),1)).^2)+((Target_Loc(1,2)-Sensor_Loc(Sensor_Heared(j),2)).^2)); 
-            %%手机中心位置Microphone_Center_Location
-            Microphone_Center_Location=(Sensor_Loc(Sensor_Heared(i),:)+Sensor_Loc(Sensor_Heared(j),:))/2;
+            Dis_SpeakerToI=sqrt(((Target_Loc(1,1)-Sensor_Loc_Real(Sensor_Heared(i),1)).^2)+((Target_Loc(1,2)-Sensor_Loc_Real(Sensor_Heared(i),2)).^2));
+            Dis_SpeakerToJ=sqrt(((Target_Loc(1,1)-Sensor_Loc_Real(Sensor_Heared(j),1)).^2)+((Target_Loc(1,2)-Sensor_Loc_Real(Sensor_Heared(j),2)).^2)); 
+            %%两个节点中心位置Node_Center_Location
+            Nodes_Center_Location=(Sensor_Loc(Sensor_Heared(i),:)+Sensor_Loc(Sensor_Heared(j),:))/2;
             %方向矢量Mic_vector
             Mic_vector=Sensor_Loc(Sensor_Heared(i),:)-Sensor_Loc(Sensor_Heared(j),:);
-            %%%已知方向矢量Direct_vector=[a,b]与中心位置(x0,y0)Microphone_Center_Location，
-            %%%计算垂直平分线a(x-x0)+b(y-y0)=0  
-            a=Mic_vector(1:end,1);
-            b=Mic_vector(1:end,2);
-            x0=Microphone_Center_Location(1:end,1);
-            y0=Microphone_Center_Location(1:end,2);
-            
+%             %%%已知方向矢量Direct_vector=[a,b]与中心位置(x0,y0)Microphone_Center_Location，
+%             %%%计算垂直平分线a(x-x0)+b(y-y0)=0  
+%             a=Mic_vector(1:end,1);
+%             b=Mic_vector(1:end,2);
+%             x0=Nodes_Center_Location(1:end,1);
+%             y0=Nodes_Center_Location(1:end,2);
+%             
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %            % 画中垂线
 %             aa=-a./b; %%%% 中垂线斜率

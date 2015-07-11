@@ -1,31 +1,42 @@
 clc;
 clear all;
+ 
+ 
+load 'DSL_Loc_Data_Ep.mat';
+load 'DSL_Loc_Data_CO.mat';
+load 'DSL_Loc_Data_Num_Err.mat';
+[m n]=size(Ep);
+[p q]=size(Sensor_Num_Count);
+[w z]=size(Sensor_Num_Count_Err);
+ for i = 1:n
+   x_i(i) = Ep(i);
+   y_i(i) =Err_Loc(i);%     每个节点会发n个数据包，收到n-1个数据包，Leader节点会收到n-1个数据包
 
-X_scape=20;%标记点的个数
-Sensor_Num = 100;%传感器个数
-load 'DSL_Loc_Data_Ep0.mat';
-totalNum=size(Err,2);
-Err=Err(~isnan(Err));%去除没有定位结果的情况
-ymax=max(Err);
-x=linspace(0,ymax,X_scape); 
-yy=hist(Err,x); %计算各个区间的个数 
-yy=yy/totalNum; %计算各个区间的概率
-for i=2:size(x,2)
-    yy(1,i)=yy(1,i-1)+yy(1,i);
-end
-plot(x, yy, 'k>-', 'LineWidth', 1, 'MarkerFaceColor', 'k');
- hold on;
-xlabel('Positioning accuracy')
-ylabel('CDF')
+ end
+plot(x_i,y_i,'k-*') 
+ 
+xlabel('Loc error ErrP/R')
+ylabel('Average output error (Accuracy)')
 figure (2)
-for x_i = 1:Sensor_Heared_Num
-   y_i =Sensor_Heared_Num*4;%     每个节点会发n个数据包，收到n-1个数据包，Leader节点会收到n-1个数据包
-plot(x_i,y_i,'k.') 
-
-hold on
+for j = 1:q
+   x_j(j) = Sensor_Num_Count(j);
+   y_j(j)=DSL_CO(j);
+ 
 end
+plot(x_j,y_j,'k-.') 
+ 
 % legend('DSL');
 xlabel('The number of nodes')
 ylabel('The number of transmission data ')
 
-
+figure (3)
+for k = 1:z
+   x_k(k) = Sensor_Num_Count_Err(k);
+   y_k(k) = Err_Num_Loc(k);
+ 
+end
+plot(x_k,y_k,'k-.') 
+ 
+% legend('DSL');
+xlabel('The number of nodes')
+ylabel('TAverage output error normalized to R ')
